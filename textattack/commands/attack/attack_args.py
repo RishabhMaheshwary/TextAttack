@@ -25,6 +25,10 @@ ATTACK_RECIPE_NAMES = {
     "checklist": "textattack.attack_recipes.CheckList2020",
     "clare": "textattack.attack_recipes.CLARE2020",
     "hard-label-attack": "textattack.attack_recipes.HardLabelMaheshwary2021",
+    "lsh-with-attention-wordnet":"textattack.attack_recipes.LSHWithAttentionWordNet",
+    "lsh-with-attention-hownet":"textattack.attack_recipes.LSHWithAttentionHowNet",
+    "lsh-with-attention-embedding":"textattack.attack_recipes.LSHWithAttentionEmbedding",
+    "lsh-with-attention-embedding-no-POS":"textattack.attack_recipes.LSHWithAttentionEmbeddingGen"
 }
 
 #

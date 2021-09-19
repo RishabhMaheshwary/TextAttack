@@ -203,13 +203,17 @@ def parse_attack_from_args(args):
                 raise ValueError(f"Error: unsupported recipe {recipe_name}")
             recipe = eval(f"{ATTACK_RECIPE_NAMES[recipe_name]}.build(model, {params})")
         elif args.recipe in ATTACK_RECIPE_NAMES:
-            recipe = eval(f"{ATTACK_RECIPE_NAMES[args.recipe]}.build(model)")
+            if args.attention_model is None:
+                recipe = eval(f"{ATTACK_RECIPE_NAMES[args.recipe]}.build(model)")
+            else:
+                recipe = eval(f"{ATTACK_RECIPE_NAMES[args.recipe]}.build(model, args.attention_model)")
         else:
             raise ValueError(f"Invalid recipe {args.recipe}")
         recipe.goal_function.query_budget = args.query_budget
         recipe.goal_function.model_batch_size = args.model_batch_size
         recipe.goal_function.model_cache_size = args.model_cache_size
         recipe.constraint_cache_size = args.constraint_cache_size
+
         return recipe
     elif args.attack_from_file:
         if ARGS_SPLIT_TOKEN in args.attack_from_file:

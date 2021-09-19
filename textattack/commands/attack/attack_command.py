@@ -189,6 +189,13 @@ class AttackCommand(TextAttackCommand):
             help="The batch size for making calls to the model.",
         )
         parser.add_argument(
+            "--attention-model",
+            default=None,
+            type=str,
+            help="Specify attention model to rank words",
+        )
+
+        parser.add_argument(
             "--model-cache-size",
             type=int,
             default=2 ** 18,

@@ -14,14 +14,20 @@ https://github.com/jind11/TextFooler.
 import numpy as np
 import torch
 from torch.nn.functional import softmax
-
+import random
 from textattack.goal_function_results import GoalFunctionResultStatus
 from textattack.search_methods import SearchMethod
+from collections import defaultdict
+from textattack.shared.attacked_text import AttackedText
+from textattack.constraints.semantics.sentence_encoders import UniversalSentenceEncoder
 from textattack.shared.validators import (
     transformation_consists_of_word_swaps_and_deletions,
 )
 
+from .han import HAN
+from .utils import *
 
+use = UniversalSentenceEncoder()
 class GreedyWordSwapWIR(SearchMethod):
     """An attack that greedily chooses from a list of possible perturbations in
     order of index, after ranking indices by importance.
@@ -31,8 +37,10 @@ class GreedyWordSwapWIR(SearchMethod):
         model_wrapper: model wrapper used for gradient-based ranking
     """
 
-    def __init__(self, wir_method="unk"):
+    def __init__(self, wir_method="unk", attention_model_path=None):
+
         self.wir_method = wir_method
+        self.attention_model_path = attention_model_path
 
     def _get_index_order(self, initial_text):
         """Returns word indices of ``initial_text`` in descending order of
@@ -45,6 +53,65 @@ class GreedyWordSwapWIR(SearchMethod):
             ]
             leave_one_results, search_over = self.get_goal_results(leave_one_texts)
             index_scores = np.array([result.score for result in leave_one_results])
+
+        elif self.wir_method == "lsh_with_attention":
+            rows = []
+            han = HAN(path=self.attention_model_path)
+            doc, score, word_alpha, sentence_alphas = han.classify(" ".join(initial_text.words[:1000]))
+            scrs = []
+            stop_words = stop_word_set()
+            word_alpha = word_alpha.detach().cpu().numpy()
+            for i in range(len(word_alpha)):
+              for j in range(len(word_alpha[i])):
+                if doc[i][j] not in stop_words and len(doc[i][j]) > 2:
+                  scrs.append(word_alpha[i][j])
+                else:
+                  scrs.append(-101.0)
+            for i in range(len(scrs), len(initial_text.words)):
+              scrs.append(-101.0)
+
+            scrs = np.asarray(scrs)
+            index_scores = scrs
+            search_over = False
+            saliency_scores = np.array([result for result in scrs])
+            softmax_saliency_scores = softmax(
+                torch.Tensor(saliency_scores), dim=0
+            ).numpy()
+            index_scores = softmax_saliency_scores
+            delta_ps = []
+            for idx in range(len_text):
+                transformed_text_candidates = self.get_transformations(
+                    initial_text,
+                    original_text=initial_text,
+                    indices_to_modify=[idx],
+                )
+                if not transformed_text_candidates:
+                    delta_ps.append(0.0)
+                    continue
+                text_to_encode = []
+                idx_to_txt = {}
+                k=0
+
+                for txt in transformed_text_candidates:
+                    idx_to_txt[str(k)] = txt
+                    res = txt.text_window_around_index(idx,10)
+                    text_to_encode.append(res)
+                    k+=1
+                embeddings = use.encode(text_to_encode)
+
+                lsh = LSH(512)
+                for t in range(len(embeddings)):
+                    lsh.add(embeddings[t],str(t))
+                table = lsh.get_result()
+                transformed_text_candidates = []
+                for key,value in table.table.items():
+                    val = random.choice(value)
+                    transformed_text_candidates.append(idx_to_txt[val])
+                swap_results, _ = self.get_goal_results(transformed_text_candidates)
+                score_change = [result.score for result in swap_results]
+                max_score_change = np.max(score_change)
+                delta_ps.append(max_score_change)
+            index_scores = (softmax_saliency_scores) * (delta_ps)
 
         elif self.wir_method == "weighted-saliency":
             # first, compute word saliency
