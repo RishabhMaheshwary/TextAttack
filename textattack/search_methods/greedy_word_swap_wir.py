@@ -59,8 +59,7 @@ class GreedyWordSwapWIR(SearchMethod):
 
         elif self.wir_method == "lsh_with_attention":
 
-          """The implementation of Attention + LSH Ranking step  (https://arxiv.org/abs/2109.04775) """
-
+          # The implementation of Attention + LSH Ranking step  (https://arxiv.org/abs/2109.04775)
             if self.attention_model_path != "mnli":
 
                 #Load Hierarchical Attention Network (HAN) for classification task
@@ -82,7 +81,7 @@ class GreedyWordSwapWIR(SearchMethod):
 
                # Load Decompose Attention Model (DA) for entailment task
 
-               len_premise = len(initial_text.words_per_input[0])
+                len_premise = len(initial_text.words_per_input[0])
 
                 premise = " ".join(initial_text.words_per_input[0])
                 hypothesis = " ".join(initial_text.words_per_input[1])
