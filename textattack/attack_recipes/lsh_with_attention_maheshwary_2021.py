@@ -1,10 +1,10 @@
 
 """
-PWWS
+Attention + LSH
 
 =======
 
-(Generating Natural Language Adversarial Examples through Probability Weighted Word Saliency)
+(A Strong Baseline for Query Efficient Attacks in a Black Box Setting)
 
 """
 from textattack.constraints.pre_transformation import (
@@ -30,17 +30,14 @@ from .attack_recipe import AttackRecipe
 
 
 class LSHWithAttentionWordNet(AttackRecipe):
-    """An implementation of Probability Weighted Word Saliency from "Generating
-    Natural Langauge Adversarial Examples through Probability Weighted Word
-    Saliency", Maheshwary et al., 2021.
+    """An implementation of the paper "A Strong Baseline for
+    Query Efficient Attacks in a Black Box Setting", Maheshwary et al., 2021.
 
-    Words are prioritized for a synonym-swap transformation based on
-    a combination of their saliency score and maximum word-swap effectiveness.
-    Note that this implementation does not include the Named
-    Entity adversarial swap from the original paper, because it requires
-    access to the full dataset and ground truth labels in advance.
+    The attack jointly leverages attention mechanism and locality sensitive hashing
+    (LSH) to rank input words and reduce the number of queries required to attack
+    target models. The attack iscevaluated on four different search spaces.
 
-    https://www.aclweb.org/anthology/P19-1103/
+    https://arxiv.org/abs/2109.04775
     """
 
     @staticmethod
@@ -48,9 +45,10 @@ class LSHWithAttentionWordNet(AttackRecipe):
         transformation = WordSwapWordNet()
         constraints = [RepeatModification(), StopwordModification()]
         goal_function = UntargetedClassification(model)
-        # search over words based on a combination of their saliency score, and how efficient the WordSwap transform is
+
         search_method = GreedyWordSwapWIR("lsh_with_attention", attention_model_path=attention_model)
         return Attack(goal_function, constraints, transformation, search_method)
+
 
 class LSHWithAttentionHowNet(AttackRecipe):
 
