@@ -45,8 +45,8 @@ class HAN():
                                             sentence_att_size=sentence_att_size,
                                             dropout=dropout)
 
-        self.model.load_state_dict(torch.load(path))
-        self.model = self.model.to(self.device)
+        self.model.load_state_dict(torch.load(path, map_location=self.device))
+        #self.model = self.model.to(self.device)
         self.model.eval()
 
     def classify(self,document):

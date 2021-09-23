@@ -1,3 +1,10 @@
+## Update
+
+The attack in the paper [A Strong Baseline for Query Efficient Attacks in a Black Box Setting
+](https://arxiv.org/abs/2109.04775) has been [implemented](https://github.com/RishabhMaheshwary/TextAttack/blob/a65831810cffb62ce25ad0acf556315e08a07d85/textattack/search_methods/greedy_word_swap_wir.py#L60) in Textattack. 
+
+Refer to [this](https://github.com/RishabhMaheshwary/query-attack) repository for more information.
+
 <h1 align="center">TextAttack 🐙</h1>
 
 <p align="center">Generating adversarial examples for NLP models</p>
